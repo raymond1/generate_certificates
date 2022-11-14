@@ -1,0 +1,11 @@
+*.pem
+*.crt
+*.csr
+database.txt
+database.txt.old
+intermediate_database.txt
+intermediate_database.txt.old
+intermediate_serial_numbers.txt
+intermediate_serial_numbers.txt.old
+serial_numbers.txt
+serial_numbers.txt.old

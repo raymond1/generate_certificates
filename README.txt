@@ -1,2 +1,0 @@
-Usage:
-bash script.bash
