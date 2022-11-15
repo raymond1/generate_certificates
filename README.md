@@ -14,3 +14,9 @@ make
 ```
 
 Various SSL-related files and directories will be output at this point.
+
+To start the test server, in the root directory type
+
+```
+node test_server/server.js
+```

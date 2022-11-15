@@ -52,6 +52,9 @@
 #	Intermediate certificates are stored in "intermediate_certificates".
 #	server_certificates ??
 # The root certificate authority certificates are stored in the directory "root_certificates".
+all: intermediate_and_root_bundle.crt server_bundle.crt
+
+#Leave blank line above^ 
 
 intermediate_and_root_bundle.crt: intermediate.crt root.crt
 	cat intermediate.crt root.crt > intermediate_and_root_bundle.crt
@@ -85,15 +88,15 @@ intermediate.csr: intermediate.pem root.crt intermediate_csr.conf
 root_certificate: root.crt root.csr
 
 #blank line required above
-root.crt: root.csr root_ca.conf database.txt serial_numbers.txt directories
+root.crt: root.csr root_ca.conf root_database.txt root_serial_numbers.txt directories
 	openssl ca -selfsign -keyfile root.pem -config root_ca.conf -out root.crt -in root.csr -outdir root_certificates -verbose -batch
 
-database.txt:
-	touch database.txt
+root_database.txt:
+	touch root_database.txt
 
-serial_numbers.txt:
-	touch serial_numbers.txt
-	echo "01" > serial_numbers.txt
+root_serial_numbers.txt:
+	touch root_serial_numbers.txt
+	echo "01" > root_serial_numbers.txt
 
 root.csr: root.pem  root_csr.conf
 	openssl req -key root.pem -out root.csr -days 398 -new -config root_csr.conf
@@ -124,6 +127,8 @@ directories:
 clean_keys:
 	rm *.pem
 
+#delete files and resets root_serial_numbers.txt and intermediate_serial_numbers.txt
+#annoyingly, it also cleans the root authority key...
 clean:
 	rm -f root_database.txt*
 	touch root_database.txt root_database.txt.attr
@@ -139,11 +144,12 @@ clean:
 	rm -f intermediate.crt
 	rm -f server.csr
 	rm -f server.crt
-	rm -f server_certificates/*.pem
+	rm -rf server_certificates
+	mkdir -p server_certificates
 	rm -f root_serial_numbers.txt*
-	echo 01 > root_serial_numbers.txt
-	rm -f intermediate_serial_numbers.txt
-	echo 01 > intermediate_serial_numbers.txt
+	echo "01" > root_serial_numbers.txt
+	rm -f intermediate_serial_numbers.txt*
+	echo "01" > intermediate_serial_numbers.txt
 
 .PHONY: clean clean_keys private_keys directories root_certificate
 
