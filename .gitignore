@@ -4,5 +4,4 @@
 *database.txt*
 *serial_numbers.txt*
 ocsp_troubleshooting
-test_server/node_modules
-
+server/node_modules

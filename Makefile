@@ -1,3 +1,5 @@
+#Server refers to the leaf server containing the domain name
+
 #List of files and their meaning and usage
 #	Private keys. Files ending in .pem are private keys.
 # 	server.pem:
@@ -52,15 +54,28 @@
 #	Intermediate certificates are stored in "intermediate_certificates".
 #	server_certificates ??
 # The root certificate authority certificates are stored in the directory "root_certificates".
-all: intermediate_and_root_bundle.crt server_bundle.crt
 
-#Leave blank line above^ 
+
+step_1: private_keys
+
+step_2: root.crt
+
+step_3: intermediate_certificates
+
+#intermediate bundle and server bundle
+step_4: all
+
+all: intermediate_and_root_bundle.crt server_bundle.crt
 
 intermediate_and_root_bundle.crt: intermediate.crt root.crt
 	cat intermediate.crt root.crt > intermediate_and_root_bundle.crt
 
 server_bundle.crt: server.crt intermediate.crt root.crt
 	cat server.crt intermediate.crt root.crt > server_bundle.crt
+
+#special used for testing
+server_by_root.crt: server.csr sign_server_by_root.conf root.pem root.crt
+	openssl ca -in server.csr -out server_by_root.crt -config sign_server_by_root.conf -keyfile root.pem -outdir server_certificates -cert root.crt -batch
 
 server.crt: server.csr sign_server_by_intermediate.conf intermediate.pem intermediate.crt
 	openssl ca -in server.csr -out server.crt -config sign_server_by_intermediate.conf -keyfile intermediate.pem -outdir server_certificates -cert intermediate.crt -batch
@@ -77,7 +92,6 @@ ocsp_responder.csr: ocsp_responder.pem ocsp_responder_csr.conf intermediate.crt
 
 intermediate_certificates: intermediate.crt intermediate.csr
 
-#retain blank line above
 intermediate.crt: intermediate.csr intermediate_csr.conf root.pem root.crt
 	openssl ca -in intermediate.csr -out intermediate.crt -config intermediate_ca.conf -keyfile root.pem -cert root.crt -outdir intermediate_certificates -batch
 
@@ -87,7 +101,6 @@ intermediate.csr: intermediate.pem root.crt intermediate_csr.conf
 
 root_certificate: root.crt root.csr
 
-#blank line required above
 root.crt: root.csr root_ca.conf root_database.txt root_serial_numbers.txt directories
 	openssl ca -selfsign -keyfile root.pem -config root_ca.conf -out root.crt -in root.csr -outdir root_certificates -verbose -batch
 
@@ -102,6 +115,7 @@ root.csr: root.pem  root_csr.conf
 	openssl req -key root.pem -out root.csr -days 398 -new -config root_csr.conf
 
 private_keys: server.pem ocsp_responder.pem intermediate.pem root.pem
+
 
 server.pem:
 	openssl genpkey -outform pem -out server.pem -algorithm rsa
