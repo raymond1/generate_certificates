@@ -5,3 +5,4 @@
 *serial_numbers.txt*
 ocsp_troubleshooting
 server/node_modules
+*/*.pem

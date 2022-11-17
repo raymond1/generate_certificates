@@ -24,7 +24,11 @@ node server/server.js
 STEPS:
 step_1: Make all the private keys
 step_2: Make all the certs
-step_3: Trust the certs in Mac.
+step_3: Trust the root cert in the Mac keychain
+step_4: Enable security.enterprise_roots.enabled, or make sure that you have an enterprise type security enabled for the browser of your choice.
 
-Troubleshooting:
 ...
+
+
+Notes:
+Only root server needs to be trusted.
