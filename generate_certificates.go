@@ -20,6 +20,8 @@ var templatesDirectory = "templates"
 var rootAuthorityCSRConfigFilename = "root_csr.conf"
 var rootAuthorityConfigurationFilename = "root_ca.conf"
 
+var rootAuthorityDirectory = "" //Will be set in makePrivateKeys
+var rootAuthorityDirectoryName = "root_authority"
 var rootAuthorityDatabaseFilename = "root_database.txt"
 var rootAuthoritySerialNumberFilename = "root_serial_numbers.txt"
 
@@ -96,8 +98,8 @@ func fileExists(filename string) bool {
 	return true
 }
 
-//Takes in an output directory and generates 3 private keys, one for the root authority, one for the intermediate authority, and one for the server hosting the domain name.
-func makePrivateKeys(domainNameDirectory string) {
+//Given the domain name directory, generates the directory structure needed for this program
+func makeDirectories(domainNameDirectory string) {
 	//1)Ensure a directory named after the domain name passed in always exists in the output directory
 	if !fileExists(outputDirectory) {
 		fmt.Println("Generating directory: " + outputDirectory)
@@ -108,6 +110,18 @@ func makePrivateKeys(domainNameDirectory string) {
 		fmt.Println("Generating directory: " + domainNameDirectory)
 		os.Mkdir(domainNameDirectory, 0700)
 	}
+
+	rootAuthorityDirectory = domainNameDirectory + "/" + rootAuthorityDirectoryName
+	if !fileExists(rootAuthorityDirectory) {
+		fmt.Println("Generating directory: " + rootAuthorityDirectory)
+		os.Mkdir(rootAuthorityDirectory, 0700)
+	}
+
+}
+
+//Takes in an output directory and generates 3 private keys, one for the root authority, one for the intermediate authority, and one for the server hosting the domain name.
+func makePrivateKeys(domainNameDirectory string) {
+	makeDirectories(domainNameDirectory)
 
 	//2)Create a root authority private key if it doesn't already exist. Do not replace an existing one
 	//openssl genpkey -outform pem -out root.pem -algorithm rsa
@@ -198,9 +212,9 @@ func main() {
 
 	rootCertificate := fmt.Sprintf("%s/root.crt", domainNameDirectory)
 	if !fileExists(rootCertificate) {
-		rootAuthorityConfigurationFilepath := domainNameDirectory + "/" + rootAuthorityConfigurationFilename
-		rootAuthorityDatabaseFilepath := domainNameDirectory + "/" + rootAuthorityDatabaseFilename
-		rootSerialNumberFilepath := domainNameDirectory + "/" + rootAuthoritySerialNumberFilename
+		rootAuthorityConfigurationFilepath := rootAuthorityDirectory + "/" + rootAuthorityConfigurationFilename
+		rootAuthorityDatabaseFilepath := rootAuthorityDirectory + "/" + rootAuthorityDatabaseFilename
+		rootSerialNumberFilepath := rootAuthorityDirectory + "/" + rootAuthoritySerialNumberFilename
 
 		if !fileExists(rootAuthorityConfigurationFilepath) {
 			fmt.Println("No root authority configuration file detected in " + rootAuthorityConfigurationFilepath + ". Copying from templates directory")
@@ -247,7 +261,7 @@ func main() {
 		}
 
 		fmt.Println("Generating root certificate")
-		generateSelfSignedCertificate(domainNameDirectory+"/"+rootAuthorityPrivateKeyFilename, rootCSR, rootAuthorityConfigurationFilepath, domainName, domainNameDirectory, rootCertificate)
+		generateSelfSignedCertificate(domainNameDirectory+"/"+rootAuthorityPrivateKeyFilename, rootCSR, rootAuthorityConfigurationFilepath, domainName, rootAuthorityDirectory, rootCertificate)
 	}
 
 }
