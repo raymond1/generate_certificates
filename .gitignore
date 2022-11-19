@@ -1,8 +1,8 @@
-*.pem
-*.crt
-*.csr
+#These two should be omittable
 *database.txt*
 *serial_numbers.txt*
+
 ocsp_troubleshooting
 server/node_modules
-*/*.pem
+
+output
