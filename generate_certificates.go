@@ -53,8 +53,8 @@ func signCertificate(signerPrivateKey string, certificateSigningRequest string, 
 //domainName: For this program, the domain name is used as the folder name where output files are stored.
 func generateSelfSignedCertificate(rootPrivateKey string, certificateSigningRequest string, rootAuthorityConfiguration string, domainName string, outputDirectory string, outputCertificate string) {
 
-	command := fmt.Sprintf("openssl ca -selfsign -keyfile %s -config %s -out %s -in root.csr -outdir %s -verbose -batch",
-		rootPrivateKey, rootAuthorityConfiguration, outputCertificate, outputDirectory)
+	command := fmt.Sprintf("openssl ca -selfsign -keyfile %s -config %s -out %s -in %s -outdir %s -verbose -batch",
+		rootPrivateKey, rootAuthorityConfiguration, outputCertificate, certificateSigningRequest, outputDirectory)
 	err := runCommand(command)
 	if err != nil {
 		fmt.Println("Error during generation of self-signed certificate. Command was: " + command)
@@ -199,6 +199,9 @@ func main() {
 	rootCertificate := fmt.Sprintf("%s/root.crt", domainNameDirectory)
 	if !fileExists(rootCertificate) {
 		rootAuthorityConfigurationFilepath := domainNameDirectory + "/" + rootAuthorityConfigurationFilename
+		rootAuthorityDatabaseFilepath := domainNameDirectory + "/" + rootAuthorityDatabaseFilename
+		rootSerialNumberFilepath := domainNameDirectory + "/" + rootAuthoritySerialNumberFilename
+
 		if !fileExists(rootAuthorityConfigurationFilepath) {
 			fmt.Println("No root authority configuration file detected in " + rootAuthorityConfigurationFilepath + ". Copying from templates directory")
 
@@ -213,28 +216,27 @@ func main() {
 
 			//After copying the contents of the file needs to be altered to match input domain name
 			contentsAsString := string(contentAsBytes[:])
-			newFileContents := fmt.Sprintf(contentsAsString, rootAuthorityDatabaseFilename, rootAuthoritySerialNumberFilename)
+			newFileContents := fmt.Sprintf(contentsAsString, rootAuthorityDatabaseFilepath, rootSerialNumberFilepath)
 
 			ioutil.WriteFile(rootAuthorityConfigurationFilepath, []byte(newFileContents), 0644)
 		}
 
-		//Must also ensure the files referenced in the root authority configuration file exist
-		rootAuthorityDatabase := domainNameDirectory + "/" + rootAuthorityDatabaseFilename
-		if !fileExists(rootAuthorityDatabase) {
-			fmt.Println("Generating root database number file:" + rootAuthorityDatabase)
-			rootAuthorityDatabaseFile, error := os.Create(rootAuthorityDatabase)
+		//Must also ensure the files referenced in the root authority configuration file exists
+
+		if !fileExists(rootAuthorityDatabaseFilepath) {
+			fmt.Println("Generating root database number file:" + rootAuthorityDatabaseFilepath)
+			rootAuthorityDatabaseFile, error := os.Create(rootAuthorityDatabaseFilepath)
 			if error != nil {
-				fmt.Println("Error when creating root authority database file:" + rootAuthorityDatabase)
+				fmt.Println("Error when creating root authority database file:" + rootAuthorityDatabaseFilepath)
 				fmt.Println(error)
 			}
 
 			rootAuthorityDatabaseFile.Close()
 		}
 
-		rootSerialNumber := domainNameDirectory + "/" + rootAuthoritySerialNumberFilename
-		if !fileExists(rootSerialNumber) {
-			fmt.Println("Generating root serial number file:" + rootSerialNumber)
-			rootSerialNumberFile, error := os.Create(rootSerialNumber)
+		if !fileExists(rootSerialNumberFilepath) {
+			fmt.Println("Generating root serial number file:" + rootSerialNumberFilepath)
+			rootSerialNumberFile, error := os.Create(rootSerialNumberFilepath)
 			if error != nil {
 				fmt.Println(error)
 			}
