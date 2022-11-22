@@ -3,7 +3,7 @@ This Makefile uses openssl to generate certificates meant to be used for local t
 Requirements:
 
 OpenSSL.
-GNU Make.
+Go.
 
 Usage:
 

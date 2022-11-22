@@ -14,6 +14,8 @@ var stringFragments = make(map[string]string)
 //Takes in a string and runs the command in a shell
 func runCommand(command string) error {
 	executableCommand := convertStringIntoExecCommand(command)
+	fmt.Println("runCommand:")
+	fmt.Println(command)
 	return executableCommand.Run()
 }
 
@@ -224,13 +226,16 @@ func makeIntermediateAuthorityCertificate() {
 	//Generate the intermediate authority CSR if it doesn't already exist
 	if !fileExists(stringFragments["intermediateAuthorityCSR"]) {
 		fmt.Println("Generating intermediate CSR.") //This is the request from the intermediate authority to the root authority to sign its certificate
-		generateCertificateSigningRequest(stringFragments["rootAuthorityPrivateKey"], stringFragments["intermediateAuthorityCSR"], stringFragments["intermediateAuthorityMakeInformationCSRConfig"])
+		generateCertificateSigningRequest(stringFragments["intermediateAuthorityPrivateKey"], stringFragments["intermediateAuthorityCSR"], stringFragments["intermediateAuthorityMakeInformationCSRConfig"])
 	}
 
 	//ensure the openssl configuration file for making the intermediate authority certificate is present
 	if !fileExists(stringFragments["intermediateAuthorityMakeCertificateConfiguration"]) {
-		hydrateTemplate(stringFragments["intermediateAuthorityConfigTemplate"], stringFragments["intermediateAuthorityMakeCertificateConfiguration"],
-			stringFragments["intermediateAuthorityDatabase"], stringFragments["intermediateAuthoritySerialNumber"])
+		hydrateTemplate(
+			stringFragments["intermediateAuthorityConfigTemplate"],
+			stringFragments["intermediateAuthorityMakeCertificateConfiguration"],
+			stringFragments["intermediateAuthorityDatabase"],
+			stringFragments["intermediateAuthoritySerialNumber"])
 	}
 
 	fmt.Println("Generating intermediate certificate")
@@ -399,7 +404,7 @@ func makeDatabaseFiles() {
 		}
 
 		//Serial numbers file needs to have the hexadecimal digit 01 in it when initially created.
-		intermediateAuthoritySerialNumberFile.WriteString("01")
+		intermediateAuthoritySerialNumberFile.WriteString("05")
 		intermediateAuthoritySerialNumberFile.Close()
 	}
 }
