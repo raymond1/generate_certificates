@@ -7,8 +7,8 @@ console.log(Object.keys(fs_package))
 let fs = fs_package.default
 
 const options = {
-  key: fs.readFileSync('server.pem'),
-  cert: fs.readFileSync('server_bundle.crt')
+  key: fs.readFileSync('output/simple.dev/server.pem'),
+  cert: fs.readFileSync('output/simple.dev/server_bundle.crt')
 };
 
 

@@ -32,3 +32,6 @@ step_4: Enable security.enterprise_roots.enabled, or make sure that you have an 
 
 Notes:
 Only root server needs to be trusted.
+
+Troubleshooting:
+SEC_ERROR_REUSED_ISSUER_AND_SERIAL in Firefox

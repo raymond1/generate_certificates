@@ -270,7 +270,7 @@ func makeRootAuthorityCertificate() {
 	if !fileExists(stringFragments["rootCSR"]) {
 		fmt.Println("Generating root CSR.")
 
-		stringFragments["rootAuthorityCSRConfig"] = stringFragments["domainNameDirectory"] + "/" + stringFragments["rootAuthorityCSRConfigFilename"]
+		stringFragments["rootAuthorityCSRConfig"] = stringFragments["rootAuthorityDirectory"] + "/" + stringFragments["rootAuthorityCSRConfigFilename"]
 		if !fileExists(stringFragments["rootAuthorityCSRConfig"]) {
 			//Copy the config file over from the templates directory to the directoryNameDirectory if it doesn't exist
 			templatesDirectoryRootAuthorityCSRConfig := stringFragments["templatesDirectory"] + "/" + stringFragments["rootAuthorityCSRConfigFilename"]
@@ -331,24 +331,24 @@ func initializeStringFragments() {
 	stringFragments["rootAuthorityDatabaseFilename"] = "root_database.txt"
 	stringFragments["rootAuthoritySerialNumberFilename"] = "root_serial_number.txt"
 	stringFragments["rootAuthorityCertificateFilename"] = "root.crt"
-	stringFragments["rootAuthorityCertificate"] = stringFragments["rootAuthorityDirectory"] + "/" + stringFragments["rootAuthorityCertificateFilename"]
 	stringFragments["rootAuthorityConfiguration"] = stringFragments["rootAuthorityDirectory"] + "/" + stringFragments["rootAuthorityConfigurationFilename"]
 	stringFragments["rootAuthorityDatabase"] = stringFragments["rootAuthorityDirectory"] + "/" + stringFragments["rootAuthorityDatabaseFilename"]
 	stringFragments["rootAuthoritySerialNumber"] = stringFragments["rootAuthorityDirectory"] + "/" + stringFragments["rootAuthoritySerialNumberFilename"]
 	stringFragments["rootAuthorityConfigTemplate"] = stringFragments["templatesDirectory"] + "/" + stringFragments["rootAuthorityConfigurationFilename"]
+	stringFragments["rootAuthorityCertificate"] = stringFragments["rootAuthorityDirectory"] + "/" + stringFragments["rootAuthorityCertificateFilename"]
 
 	stringFragments["intermediateAuthorityCSRConfigFilename"] = "intermediate_csr.conf"
 	stringFragments["intermediateAuthorityDirectory"] = stringFragments["outputDirectory"] + "/intermediate_authority"
 	stringFragments["intermediateAuthorityPrivateKey"] = stringFragments["intermediateAuthorityDirectory"] + "/" + stringFragments["intermediateAuthorityPrivateKeyFilename"]
 	stringFragments["intermediateAuthorityConfigurationFilename"] = "intermediate_ca.conf"
 	stringFragments["intermediateAuthorityConfiguration"] = stringFragments["intermediateAuthorityDirectory"] + "/" + stringFragments["intermediateAuthorityConfigurationFilename"]
-	stringFragments["intermediateAuthorityCSRConfig"] = stringFragments["domainNameDirectory"] + "/" + stringFragments["intermediateAuthorityCSRConfigFilename"]
+	stringFragments["intermediateAuthorityCSRConfig"] = stringFragments["intermediateAuthorityDirectory"] + "/" + stringFragments["intermediateAuthorityCSRConfigFilename"]
 	stringFragments["intermediateAuthorityDatabase"] = stringFragments["intermediateAuthorityDirectory"] + "/intermediate_database.txt"
 	stringFragments["intermediateAuthoritySerialNumber"] = stringFragments["intermediateAuthorityDirectory"] + "/intermediate_serial_number.txt"
 	stringFragments["intermediateAuthorityCSR"] = stringFragments["intermediateAuthorityDirectory"] + "/intermediate.csr"
 	stringFragments["intermediateAuthorityCSRConfigTemplate"] = stringFragments["templatesDirectory"] + "/" + stringFragments["intermediateAuthorityCSRConfigFilename"]
-	stringFragments["intermediateAuthorityCertificate"] = stringFragments["intermediateAuthorityDirectory"] + "/intermediate.crt"
 	stringFragments["intermediateAuthorityConfigTemplate"] = stringFragments["templatesDirectory"] + "/" + stringFragments["intermediateAuthorityConfigurationFilename"]
+	stringFragments["intermediateAuthorityCertificate"] = stringFragments["intermediateAuthorityDirectory"] + "/intermediate.crt"
 
 	stringFragments["serverCSR"] = stringFragments["domainNameDirectory"] + "/server.csr"
 	stringFragments["serverCSRConfigFilename"] = "server_csr.conf"
@@ -360,7 +360,43 @@ func initializeStringFragments() {
 	stringFragments["serverConfigTemplate"] = stringFragments["templatesDirectory"] + "/" + stringFragments["serverConfigFilename"]
 	stringFragments["serverCertificateFilename"] = "server.crt"
 	stringFragments["serverCertificate"] = stringFragments["domainNameDirectory"] + "/" + stringFragments["serverCertificateFilename"]
+	stringFragments["serverBundleCertificate"] = stringFragments["domainNameDirectory"] + "/server_bundle.crt"
 
+}
+
+func makeServerCertificateBundle() {
+	fmt.Println("Generating server certificate bundle")
+
+	serverCertificateData, err := ioutil.ReadFile(stringFragments["serverCertificate"])
+	if err != nil {
+		fmt.Println("Error reading server certificate during bundle generation:")
+		fmt.Println(err)
+		os.Exit(0)
+	}
+
+	intermediateCertificateData, err := ioutil.ReadFile(stringFragments["intermediateAuthorityCertificate"])
+	if err != nil {
+		fmt.Println("Error reading intermediate certificate during bundle generation:")
+		fmt.Println(err)
+		os.Exit(0)
+	}
+
+	rootCertificateData, err := ioutil.ReadFile(stringFragments["rootAuthorityCertificate"])
+	if err != nil {
+		fmt.Println("Error reading root certificate during bundle generation:")
+		fmt.Println(err)
+		os.Exit(0)
+	}
+
+	certificateBundleData := append(serverCertificateData, intermediateCertificateData...)
+	certificateBundleData = append(certificateBundleData, rootCertificateData...)
+
+	err = ioutil.WriteFile(stringFragments["serverBundleCertificate"], certificateBundleData, 0644)
+
+	if err != nil {
+		fmt.Println("Error writing to ", stringFragments["serverBundleCertificate"])
+		fmt.Println(err)
+	}
 }
 
 //Usage: go run generate_certificates.go <domain.name>
@@ -394,4 +430,6 @@ func main() {
 	makeIntermediateAuthorityCertificate()
 
 	makeServerCertificate()
+
+	makeServerCertificateBundle()
 }
