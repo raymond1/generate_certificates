@@ -1,21 +1,38 @@
-This Makefile uses openssl to generate certificates meant to be used for local testing.
+This piece of software uses openssl to generate TLS certificates meant to be used for local testing. The idea behind this piece of software is that someone who is developing software and needs an https connection can do so with a single command followed by several configuration steps.
+
+Usage:
+```
+go run generate_certificates.go <domain.name>
+```
+
+After running the command, you will generate an output folder. Under the output folder, there will be a root_authority folder containing the root certificate in the file root.crt, amongst other files. Add this certificate to the list of certificates in Keychain Access in MacOS. Then, always trust the certificate. Then, add <domain.name> to your /etc/hosts file. For me, the line looks like: 
+```
+127.0.0.1       <domain.name>
+```
+
+
+
+
+It was tested on Mac OS only.
 
 Requirements:
 
 OpenSSL.
 Go.
+NodeJS.
+Chrome or similar browser.
 
 Usage:
 
 In the root directory, type in 
 
 ```
-make
+go run generate_certificates.go <domain.name>
 ```
 
-Various SSL-related files and directories will be output at this point.
+Various TLS-related files and directories will be output at this point in the "output" directory.
 
-To start the test server, in the root directory type
+Go into the server/server.js file and find "server.pem" and "server_bundle.crt". In server.js, point the "key" and "cert" option fields of the 
 
 ```
 node server/server.js
