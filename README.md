@@ -34,4 +34,8 @@ Notes:
 Only root server needs to be trusted.
 
 Troubleshooting:
-SEC_ERROR_REUSED_ISSUER_AND_SERIAL in Firefox
+SEC_ERROR_REUSED_ISSUER_AND_SERIAL in Firefox. To fix this, try deleting the intermediate certificate, the server certificate and the server bundle certificate, regenerating and reloading the test website.
+
+//SiteSecurityServiceState.txt in the profile folder
+//security.disable_button.openCertManager
+//about:config
