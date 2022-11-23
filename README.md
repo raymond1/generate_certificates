@@ -32,8 +32,3 @@ should be modified so that simple.dev is replaced with your domain name. In othe
 
 Then, you should be able to go into your browser and type https://<domain.name> and see the message hello if everything is working.
 
-Please note that this software, while useful, has only been tested a few times. It is very complicated and requires a lot of knowledge to truly understand. There are many situations where these commands may not work, or may not be appropriate. It is up to you as a developer to understand the security implications of using this software.
-
-The main thing you should know is that by trusting the root certificate or the intermediate certificate that you generated on your system is that if you or anyone else who has access to the root or intermediate keys uses it to trust other certificates, then it is possible that other website urls which are signed with your root private key or the intermediate authority private key that is generated in the software can appear to your browser as legitimate websites when they are not. While this can only happen through deliberate action, a nefarious person could potentially harm you when you trust a the new root certificate that you generate with this software. Or perhaps you might accidentally mix up live and development websites and lose some data. Other scenarios are possible.
-
-This software is free and not well tested. I don't expect it to damage people's computers, but neither can I guarantee that damage will not happen. Use at your own risk. I take no responsibility for problems may be caused as a result of you using this software.
