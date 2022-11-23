@@ -53,5 +53,5 @@ In addition, several intermediate steps generate other files such as certificate
 # Other Usage Details
 If you delete the entire output directory and run the script again, a new set of root, intermediate and server keys and certificates will be generated.
 
-If a file already exists, it will not be created. So, for example, if you ran the script ```go run generate_certificates.go simple.dev ```
-once and generated a root key, an intermediate key, a server key, a root certificate, an intermediate certificate and server certificate, if you run the script again, nothing will be generated. To regenerate the server certificate(output/simple.dev/server.crt), you will have to delete it. To regenerate the root certificate, you will have to delete that file.
+If a file already exists, it will not be created. So, for example, if you ran the script ```go run generate_certificates.go <domain.name> ```
+once and generated a root key, an intermediate key, a server key, a root certificate, an intermediate certificate and server certificate, if you run the script again, nothing will be generated. To regenerate the server certificate(output/<domain.name>/server.crt), you will have to delete it and the run the ``go run generate_certificates.go <domain.name>``` command again. To regenerate the root certificate, you will have to delete that file and again run the ```go run generate_certificates.go <domain.name>``` command again.
