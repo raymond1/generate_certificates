@@ -2,7 +2,7 @@
 *database.txt*
 *serial_numbers.txt*
 
-ocsp_troubleshooting
 server/node_modules
 
 output
+.DS_Store
