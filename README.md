@@ -9,14 +9,19 @@ This piece of software uses openssl to generate TLS certificates meant to be use
 
 # Usage:
 
-There are two steps to using this software.
-
 ## Step 1
+
+Clone the repository:
+```
+git clone https://github.com/raymond1/generate_certificates.git
+```
+
+## Step 2
 ```
 go run generate_certificates.go <domain.name>
 ```
 
-## Step 2: Configuration
+## Step 3: Configuration
 
 After running the command from step 1, a folder named "output" will be generated, along with files and subfolders. Under the output folder, there will be a root_authority folder containing the root certificate in the file root.crt, amongst other files. Add this certificate to the list of certificates in Keychain Access in MacOS. Then, always trust the certificate. Then, add <domain.name> to your /etc/hosts file. For me, the line looks like: 
 ```
