@@ -3,15 +3,15 @@ package main
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"strings"
+	"time"
 )
 
 var stringFragments = make(map[string]string)
 
-//Takes in a string and runs the command in a shell
+// Takes in a string and runs the command in a shell
 func runCommand(command string) error {
 	executableCommand := convertStringIntoExecCommand(command)
 	fmt.Println("runCommand:")
@@ -19,25 +19,17 @@ func runCommand(command string) error {
 	return executableCommand.Run()
 }
 
-//Takes in a string and produces Cmd object that can be run
+// Takes in a string and produces Cmd object that can be run
 func convertStringIntoExecCommand(command string) *exec.Cmd {
 	arguments := strings.Split(command, " ")
 	return exec.Command(arguments[0], arguments[1:]...)
 }
 
-//Incorrect
-func signCertificate(signerPrivateKey string, certificateSigningRequest string, outputCertificate string) {
-	//openssl ca -selfsign -keyfile root.pem -config root_ca.conf -out root.crt -in root.csr -outdir root_certificates -verbose -batch
-	command := ""
-	executableCommand := convertStringIntoExecCommand(command)
-	executableCommand.Run()
-}
-
-//Generates a certificate based off of the root private key, root authority openssl confiration file, output filename and output directory
+// Generates a certificate based off of the root private key, root authority openssl confiration file, output filename and output directory
 func generateSelfSignedCertificate(privateKey, configuration, outputCertificateFilename, certificateSigningRequest, outputDirectory string) {
-
-	command := fmt.Sprintf("openssl ca -selfsign -keyfile %s -config %s -out %s -in %s -outdir %s -verbose -batch",
-		privateKey, configuration, outputCertificateFilename, certificateSigningRequest, outputDirectory)
+	startDate := time.Now().UTC().Format("060102150405Z")
+	command := fmt.Sprintf("openssl ca -selfsign -keyfile %s -config %s -out %s -in %s -outdir %s -verbose -batch -startdate %s",
+		privateKey, configuration, outputCertificateFilename, certificateSigningRequest, outputDirectory, startDate)
 
 	fmt.Println("Inside generateSelfSignedCertificate", command)
 	err := runCommand(command)
@@ -48,9 +40,9 @@ func generateSelfSignedCertificate(privateKey, configuration, outputCertificateF
 	}
 }
 
-//privateKey is a string specifying the filepath of the private key for the entity performing the sign
-//outputCertificate is a string specifying the filepath of the certificate that will be generated
-//configuration is a string specifying the filepath of a file containing data to be signed
+// privateKey is a string specifying the filepath of the private key for the entity performing the sign
+// outputCertificate is a string specifying the filepath of the certificate that will be generated
+// configuration is a string specifying the filepath of a file containing data to be signed
 func generateCertificateSigningRequest(privateKey, outputCertificate, configuration string) {
 	command := fmt.Sprintf("openssl req -key %s -out %s -days 398 -new -config %s", privateKey, outputCertificate, configuration)
 	fmt.Println("Inside generateCertificateSigningRequest. command is:", command)
@@ -63,9 +55,11 @@ func generateCertificateSigningRequest(privateKey, outputCertificate, configurat
 	}
 }
 
-//Generates a signed certificate using the openssl ca command
+// Generates a signed certificate using the openssl ca command
 func generateSignedCertificate(certificateSigningRequest, outputCertificateFilepath, certificateAuthorityConfiguration, certificateAuthoritySigningKey, certificateAuthorityCertificate, outputCertificateDirectory string) {
-	command := fmt.Sprintf("openssl ca -in %s -out %s -config %s -keyfile %s -cert %s -outdir %s -batch", certificateSigningRequest, outputCertificateFilepath, certificateAuthorityConfiguration, certificateAuthoritySigningKey, certificateAuthorityCertificate, outputCertificateDirectory)
+	startDate := time.Now().UTC().Format("060102150405Z")
+
+	command := fmt.Sprintf("openssl ca -in %s -out %s -config %s -keyfile %s -cert %s -outdir %s -batch -startdate %s", certificateSigningRequest, outputCertificateFilepath, certificateAuthorityConfiguration, certificateAuthoritySigningKey, certificateAuthorityCertificate, outputCertificateDirectory, startDate)
 	fmt.Println("Inside generateSignedCertificate the command is:", command)
 	err := runCommand(command)
 	if err != nil {
@@ -75,7 +69,7 @@ func generateSignedCertificate(certificateSigningRequest, outputCertificateFilep
 	}
 }
 
-//Uses OpenSSL to generate a private key
+// Uses OpenSSL to generate a private key
 func generatePrivateKey(filename string) error {
 	command := fmt.Sprintf("openssl genpkey -outform pem -out %s -algorithm rsa", filename)
 	err := runCommand(command)
@@ -87,7 +81,7 @@ func generatePrivateKey(filename string) error {
 	return err
 }
 
-//Returns true if file or directory passed in exists
+// Returns true if file or directory passed in exists
 func fileExists(filename string) bool {
 	_, err := os.Stat(filename)
 	if errors.Is(err, os.ErrNotExist) {
@@ -96,7 +90,7 @@ func fileExists(filename string) bool {
 	return true
 }
 
-//Given the domain name directory, generates the directory structure needed for this program
+// Given the domain name directory, generates the directory structure needed for this program
 func makeDirectories() {
 	//1)Ensure a directory named after the domain name passed in always exists in the output directory
 	if !fileExists(stringFragments["outputDirectory"]) {
@@ -120,7 +114,7 @@ func makeDirectories() {
 	}
 }
 
-//Takes in an output directory and generates 3 private keys, one for the root authority, one for the intermediate authority, and one for the server hosting the domain name.
+// Takes in an output directory and generates 3 private keys, one for the root authority, one for the intermediate authority, and one for the server hosting the domain name.
 func makePrivateKeys() {
 	//2)Create a root authority private key if it doesn't already exist. Do not replace an existing one
 	//openssl genpkey -outform pem -out root.pem -algorithm rsa
@@ -146,17 +140,17 @@ func makePrivateKeys() {
 	}
 }
 
-//Copies the file in source to destination
+// Copies the file in source to destination
 func fileCopy(src, dst string) {
 	fmt.Println("Inside fileCopy src:", src, "| dst:", dst, "|")
-	bytesRead, err := ioutil.ReadFile(src)
+	bytesRead, err := os.ReadFile(src)
 
 	if err != nil {
 		fmt.Println("Error reading from ", src)
 		fmt.Println(err)
 	}
 
-	err = ioutil.WriteFile(dst, bytesRead, 0644)
+	err = os.WriteFile(dst, bytesRead, 0644)
 
 	if err != nil {
 		fmt.Println("Error writing to: ", dst)
@@ -164,14 +158,14 @@ func fileCopy(src, dst string) {
 	}
 }
 
-//template: a template openssl configuration file
-//output: the output file that will be guaranteed to exist. One will be generated by copying
-//args: a string array of
+// template: a template openssl configuration file
+// output: the output file that will be guaranteed to exist. One will be generated by copying
+// args: a string array of
 func hydrateTemplate(template, output string, args ...any) {
 	fmt.Println("Hydrating ", template, " into ", output)
 	fileCopy(template, output)
 
-	contentAsBytes, err := ioutil.ReadFile(output)
+	contentAsBytes, err := os.ReadFile(output)
 	if err != nil {
 		fmt.Println("Error while reading " + output)
 		fmt.Println(err)
@@ -181,7 +175,7 @@ func hydrateTemplate(template, output string, args ...any) {
 	contentsAsString := string(contentAsBytes[:])
 	newFileContents := fmt.Sprintf(contentsAsString, args...)
 
-	ioutil.WriteFile(output, []byte(newFileContents), 0644)
+	os.WriteFile(output, []byte(newFileContents), 0644)
 }
 
 func makeServerCertificate() {
@@ -217,7 +211,7 @@ func makeServerCertificate() {
 	}
 }
 
-//This is not correct
+// This is not correct
 func makeIntermediateAuthorityCertificate() {
 	if !fileExists(stringFragments["intermediateAuthorityMakeInformationCSRConfig"]) {
 		fileCopy(stringFragments["intermediateAuthorityMakeInformationCSRConfigTemplate"], stringFragments["intermediateAuthorityMakeInformationCSRConfig"])
@@ -326,21 +320,21 @@ func initializeStringFragments() {
 func makeServerCertificateBundle() {
 	fmt.Println("Generating server certificate bundle")
 
-	serverCertificateData, err := ioutil.ReadFile(stringFragments["serverCertificate"])
+	serverCertificateData, err := os.ReadFile(stringFragments["serverCertificate"])
 	if err != nil {
 		fmt.Println("Error reading server certificate during bundle generation:")
 		fmt.Println(err)
 		os.Exit(0)
 	}
 
-	intermediateCertificateData, err := ioutil.ReadFile(stringFragments["intermediateAuthorityCertificate"])
+	intermediateCertificateData, err := os.ReadFile(stringFragments["intermediateAuthorityCertificate"])
 	if err != nil {
 		fmt.Println("Error reading intermediate certificate during bundle generation:")
 		fmt.Println(err)
 		os.Exit(0)
 	}
 
-	rootCertificateData, err := ioutil.ReadFile(stringFragments["rootAuthorityCertificate"])
+	rootCertificateData, err := os.ReadFile(stringFragments["rootAuthorityCertificate"])
 	if err != nil {
 		fmt.Println("Error reading root certificate during bundle generation:")
 		fmt.Println(err)
@@ -350,7 +344,7 @@ func makeServerCertificateBundle() {
 	certificateBundleData := append(serverCertificateData, intermediateCertificateData...)
 	certificateBundleData = append(certificateBundleData, rootCertificateData...)
 
-	err = ioutil.WriteFile(stringFragments["serverBundleCertificate"], certificateBundleData, 0644)
+	err = os.WriteFile(stringFragments["serverBundleCertificate"], certificateBundleData, 0644)
 
 	if err != nil {
 		fmt.Println("Error writing to ", stringFragments["serverBundleCertificate"])
@@ -358,8 +352,8 @@ func makeServerCertificateBundle() {
 	}
 }
 
-//Makes the database file and serial number needed for the OpenSSL ca command for
-//the intermediate and root certificates
+// Makes the database file and serial number needed for the OpenSSL ca command for
+// the intermediate and root certificates
 func makeDatabaseFiles() {
 	//Must also ensure the files referenced in the root authority configuration file exists
 	if !fileExists(stringFragments["rootAuthorityDatabase"]) {
@@ -412,7 +406,7 @@ func makeDatabaseFiles() {
 //Usage: go run generate_certificates.go <domain.name>
 //domain.name will be created as a directory and files generated by generate_certificates.go will go into the directory with name "domain.name".
 
-//In the code, the term "server" refers to the computer hosting the name domain.name
+// In the code, the term "server" refers to the computer hosting the name domain.name
 func main() {
 	//Force there to be exactly two arguments, the name of the file and the domain name
 	if len(os.Args) != 2 {
